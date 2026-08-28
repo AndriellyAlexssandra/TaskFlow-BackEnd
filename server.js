@@ -4,6 +4,10 @@ const app = express();
 const PORTA = 3000;
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.json({ api: "TaskFlow", versao: "1.0", status: "online" });
+});
+
 let tarefas = [
   { id: 1, texto: "Estudar JSX", prioridade: "media", coluna: "concluido" },
   { id: 2, texto: "Criar API", prioridade: "alta", coluna: "andamento" },
@@ -20,6 +24,7 @@ let usuarios = [
   { id: 3, nome: "cleidiana", email: "cleidiana@opera.com", senha: "bolinho0" },
 ];
 let proximoIdUsuario = 4;
+
 //verificar usuários
 app.get("/usuarios", (req, res) => {
   res.json(usuarios);
@@ -34,8 +39,19 @@ app.get("/usuarios/:id", (req, res) => {
   res.json(usuario);
 });
 //postar usuário
+
 app.post("/usuarios", (req, res) => {
-  const { texto, nome, email, senha } = req.body;
+  const { nome, email, senha } = req.body;
+
+  if (!nome || !email || !senha) {
+    return res
+      .status(400)
+      .json({ erro: "Nome, email e senha são obrigatorios" });
+  }
+  const emailExiste = usuarios.find((u) => u.email === email);
+  if (emailExiste) {
+    return res.status(400).json({ erro: "Este email já existe!" });
+  }
   const novoUsuario = {
     id: proximoIdUsuario,
     nome: nome,
@@ -45,10 +61,18 @@ app.post("/usuarios", (req, res) => {
   usuarios.push(novoUsuario);
   res.status(201).json(novoUsuario);
 });
+
 //atualizar usuario
 app.put("/usuarios/:id", (req, res) => {
   const id = Number(req.params.id);
   const { nome, email, senha } = req.body;
+
+  const emailExiste = usuarios.find(
+    (u) => u.email === req.body.email && u.id !== id,
+  );
+  if (emailExiste) {
+    return res.status(400).json({ erro: "Este email já existe!" });
+  }
 
   const indice = tarefas.findIndex((u) => u.id === id);
   if (indice === -1) {
@@ -69,10 +93,6 @@ app.delete("/usuarios/:id", (req, res) => {
   }
   usuarios = usuarios.filter((u) => u.id !== id);
   res.json({ mensagem: "Usuário removido com sucesso", id });
-});
-
-app.get("/", (req, res) => {
-  res.json({ api: "TaskFlow", versao: "1.0", status: "online" });
 });
 
 //post - postar tarefa
@@ -160,6 +180,13 @@ app.get("/tarefas", (req, res) => {
   }
   res.json(resultado);
 });
+
+app.get("/estatisticas", (req, res) =>{
+res.json(estatisticas);
+});
+app.get("/estatisticas", (req, res) =>{
+
+}),
 
 //Rota 404
 app.use((req, res) => {
