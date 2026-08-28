@@ -178,24 +178,28 @@ app.get("/tarefas", (req, res) => {
   if (prioridade) {
     resultado = resultado.filter((t) => t.prioridade === prioridade);
   }
+
   res.json(resultado);
 });
 
-app.get("/estatisticas", (req, res) =>{
-res.json(estatisticas);
-});
-app.get("/estatisticas", (req, res) =>{
+app.get("/estatisticas", (req, res) => {
+  const coluna = req.query;
+  let resultado = tarefas;
+  const totalTarefas = tarefas.length;
 
+  resultado = resultado.filter((t) => t.afazer === afazer).length;
+  
+
+  res.json(resultado);
 }),
-
-//Rota 404
-app.use((req, res) => {
-  res.status(404).json({
-    erro: "Rota não encontrada",
-    metodo: req.method,
-    caminho: req.url,
+  //Rota 404
+  app.use((req, res) => {
+    res.status(404).json({
+      erro: "Rota não encontrada",
+      metodo: req.method,
+      caminho: req.url,
+    });
   });
-});
 app.listen(PORTA, () => console.log(`Porta ${PORTA}`));
 
 app.listen(PORTA, () => {
