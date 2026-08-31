@@ -105,7 +105,7 @@ app.put("/tarefas/:id", (req, res) => {
 
   const indice = tarefas.findIndex((t) => t.id === id);
   if (indice === -1) {
-    return res.status(404).json({ erro: "Tarefa não encontrada :/" });
+    return res.status(404).json({ erro: "Tarefa não encontrada :/ " });
   }
   const tarefaAtualizada = { id, texto, prioridade, coluna, cidade };
   tarefas[indice] = tarefaAtualizada;
@@ -117,7 +117,7 @@ app.delete("/tarefas/:id", (req, res) => {
   const id = Number(req.params.id);
   const tarefa = tarefas.find((t) => t.id === id);
   if (!tarefa) {
-    return res.status(404).json({ erro: "Tarefa não encontrada :/" });
+    return res.status(404).json({ erro: "Tarefa não encontrada :/ " });
   }
   tarefas = tarefas.filter((t) => t.id !== id);
 
