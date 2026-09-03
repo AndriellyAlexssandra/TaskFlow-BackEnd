@@ -70,6 +70,6 @@ const usuariosController = {
     }
     usuarios = usuarios.filter((u) => u.id !== id);
     res.json({ mensagem: "Usuário removido com sucesso!", id });
-  },
+  }, 
 };
 module.exports = usuariosController;
