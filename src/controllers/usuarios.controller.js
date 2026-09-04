@@ -1,24 +1,16 @@
-let usuarios = [
-  { id: 1, nome: "francisca", email: "francisca@gmail.com", senha: "francis1" },
-  {
-    id: 2,
-    nome: "minguado",
-    email: "minguado@outlook.com",
-    senha: "minguado6",
-  },
-  { id: 3, nome: "cleidiana", email: "cleidiana@opera.com", senha: "bolinho0" },
-];
-let proximoIdUsuario = 4;
+const usuariosModal = require("../models/usuario.model");
+
 const usuariosController = {
   listarUsuarios(req, res) {
-    res.json(usuarios);
+    res.json(usuariosModal.listarUsuarios());
   },
-  buscarPorId(req, res) {
-    const id = Number(req.params.id);
-    const usuario = usuarios.find((u) => u.id === id);
-
+  buscarUsuarioPorId(req, res) {
+    const { id } = req.params;
+    const usuario = usuariosModal.buscarUsuarioPorId(parseInt(id));
     if (!usuario) {
-      return res.status(404).json({ erro: "Usuário não encontrado" });
+      return res
+        .status(404)
+        .json({ message: "Usuário não foi encontrado ou ele não existe :(" });
     }
     res.json(usuario);
   },
@@ -30,46 +22,44 @@ const usuariosController = {
         .status(400)
         .json({ erro: "Nome, email e senha são obrigatorios" });
     }
-    const emailExiste = usuarios.find((u) => u.email === email);
+
+    const emailExiste = usuariosModal
+      .listarUsuarios()
+      .find((u) => u.email === email);
+
     if (emailExiste) {
       return res.status(400).json({ erro: "Este email já existe!" });
     }
-    const novoUsuario = {
-      id: proximoIdUsuario,
-      nome: nome,
-      email: email,
-      senha: senha,
-    };
-    usuarios.push(novoUsuario);
-    res.status(201).json(novoUsuario);
+    const novoUsuario = usuariosModal.criarUsuario(nome, email, senha);
+    return res.status(201).json(novoUsuario);
   },
   atualizarUsuario(req, res) {
-    const id = Number(req.params.id);
-    const { nome, email, senha } = req.body;
-
-    const emailExiste = usuarios.find(
-      (u) => u.email === req.body.email && u.id !== id,
+    const usuarioAtualizado = usuariosModal.atualizarUsuario(
+      parseInt(req.params.id),
+      req.body,
     );
+    if (!usuarioAtualizado) {
+      return res
+        .status(404)
+        .json({ erro: "Usuário não encontrado para a atualização :/ " });
+    }
+    const emailExiste = usuariosModal
+      .listarUsuarios()
+      .find((u) => u.email === req.body.email);
     if (emailExiste) {
       return res.status(400).json({ erro: "Este email já existe!" });
     }
-    const indice = usuarios.findIndex((u) => u.id === id);
-    if (indice === -1) {
-      return res.status(404).json({ erro: "Usuário não encontrado :/" });
-    }
-    const usuarioAtualizado = { id, nome, email, senha };
-    usuarios[indice] = usuarioAtualizado;
 
     res.json(usuarioAtualizado);
   },
   deletarUsuario(req, res) {
-    const id = Number(req.params.id);
-    const usuario = usuarios.find((u) => u.id === id);
+    const id = Number(parseInt(req.params.id));
+    const usuario = usuariosModal.deletarUsuario(id);
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado :/" });
     }
-    usuarios = usuarios.filter((u) => u.id !== id);
+
     res.json({ mensagem: "Usuário removido com sucesso!", id });
-  }, 
+  },
 };
 module.exports = usuariosController;

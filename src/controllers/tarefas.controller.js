@@ -1,4 +1,5 @@
 const tarefasModel = require("../models/tarefa.model");
+const usuariosModal = require("../models/usuario.model");
 
 const tarefasController = {
   estatisticas(req, res) {
@@ -54,21 +55,47 @@ const tarefasController = {
     res.json(tarefasModel.listarTarefas());
   },
 
-  buscarPorId(req, res) {
-    const tarefa = tarefasModel.buscarPorId(req.params.id);
+  buscarTarefaPorId(req, res) {
+    const { id } = req.params;
+    const tarefa = tarefasModel.buscarTarefaPorId(parseInt(id));
     if (!tarefa) {
-      return res.status(404).json({ erro: "Tarefa não encontrada :/" });
+      return res
+        .status(404)
+        .json({ message: "Tarefa não foi encontrada ou ela não existe :(" });
     }
     res.json(tarefa);
   },
 
   criarTarefa(req, res) {
-    const { texto, prioridade, coluna, cidade } = req.body;
+    const { texto, prioridade, coluna, usuarioId } = req.body;
     if (!texto || !prioridade || !coluna) {
       return res
         .status(400)
         .json({ erro: "Texto, prioridade e coluna são obrigatórios :/ " });
     }
+    const prioridadesValidas = ["baixa", "media", "alta"];
+    if (!prioridadesValidas.includes(prioridade)) {
+      return res.status(400).json({
+        erro: "Prioridade inválida. Escolha entre 'baixa', 'media' ou 'alta'. :/ ",
+      });
+    }
+    const colunasValidas = ["afazer", "andamento", "concluido"];
+    if (!colunasValidas.includes(coluna)) {
+      return res.status(400).json({
+        erro: "Coluna inválida. Escolha entre 'afazer', 'andamento' ou 'concluido'. :/ ",
+      });
+    }
+    const usuariosId = usuariosModal.buscarUsuarioPorId(usuarioId);
+    if (!usuariosId) {
+      return res
+        .status(400)
+        .json({ erro: "Id usuário inválido ou Usuário não encontrado :/ " });
+    }
+
+    const tarefaAndamento = tarefasModel.listarTarefasPorColuna("andamento").filter((t) => t.usuarioId === parseInt(usuarioId)).length;
+      if (tarefaAndamento >= 2) {
+        return res.status(400).json({ erro: "Limite de 2 tarefas em andamento por usuário atingido"});
+      }
     const novaTarefa = tarefasModel.criarTarefa(req.body);
     res.status(201).json(novaTarefa);
   },
@@ -83,16 +110,33 @@ const tarefasController = {
         .status(404)
         .json({ erro: "Tarefa não encontrada para a atualização:/ " });
     }
+    const tarefaAndamento = tarefasModel.listarTarefasPorColuna("andamento").filter((t) => t.usuarioId === parseInt(usuarioId)).length;
+      if (tarefaAndamento >= 2) {
+        return res.status(400).json({ erro: "Limite de 2 tarefas em andamento por usuário atingido"});
+      }
     res.json(tarefaAtualizada);
   },
 
   deletarTarefa(req, res) {
+    const { id } = req.params;
+    const verificarUsuarioId = tarefasModel
+      .listarTarefas()
+      .filter((t) => t.usuarioId === parseInt(id));
+    if (verificarUsuarioId.length > 0) {
+      return res
+        .status(400)
+        .json({
+          erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
+        });
+    }
+
     const tarefaDeletada = tarefasModel.deletarTarefa(parseInt(req.params.id));
     if (!tarefaDeletada) {
       return res
         .status(404)
         .json({ erro: "Tarefa não encontrada para remover :/ " });
     }
+
     res.json({
       mensagem: "Tarefa removida com sucesso!",
       tarefa: tarefaDeletada,
