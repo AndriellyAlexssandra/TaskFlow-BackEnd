@@ -1,5 +1,5 @@
-const tarefaModel = require("../models/tarefa.model");
 const tarefasModel = require("../models/tarefa.model");
+
 const usuariosModal = require("../models/usuario.model");
 
 const tarefasController = {
@@ -28,9 +28,26 @@ const tarefasController = {
       media: tarefasFiltradas.filter((t) => t.prioridade === "media").length,
       baixa: tarefasFiltradas.filter((t) => t.prioridade === "baixa").length,
     };
-    res.json({ total: tarefasFiltradas.length, porColuna, porPrioridade });
-  },
+    const todasTarefas = tarefasModel.listarTarefas();
+    const contagemPorUsuario = todasTarefas.reduce((acumulador, tarefa) => {
+      const id = tarefa.usuarioId;
+      acumulador[id] = (acumulador[id] || 0) + 1;
+      return acumulador;
+    }, {});
 
+    const rankingUsuarios = Object.entries(contagemPorUsuario)
+      .map(([usuarioId, totalTarefas]) => {
+        const usuario = usuariosModal.buscarUsuarioPorId(parseInt(usuarioId));
+        return {
+          usuarioId: parseInt(usuarioId),
+          nome: usuario ? usuario.nome : "Desconhecido",
+          totalTarefas,
+        };
+      })
+      .sort((a, b) => b.totalTarefas - a.totalTarefas);
+
+    res.json({ total: tarefasFiltradas.length, porColuna, porPrioridade, rankingUsuarios });
+  },
   estatisticasResumo(req, res) {
     const total = tarefasModel.listarTarefas().length;
 
