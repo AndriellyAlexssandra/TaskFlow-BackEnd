@@ -1,3 +1,4 @@
+const tarefaModel = require("../models/tarefa.model");
 const tarefasModel = require("../models/tarefa.model");
 const usuariosModal = require("../models/usuario.model");
 
@@ -52,7 +53,15 @@ const tarefasController = {
   },
 
   listarTarefas(req, res) {
-    res.json(tarefasModel.listarTarefas());
+    const { usuarioId, coluna } = req.query;
+    let tarefas = usuarioId
+      ? tarefasModel.listarPorUsuario(parseInt(usuarioId))
+      : tarefasModel.listarTarefas();
+
+    if (coluna) {
+      tarefas = tarefas.filter((t) => t.coluna === coluna);
+    }
+    res.json(tarefas);
   },
 
   buscarTarefaPorId(req, res) {
@@ -91,29 +100,57 @@ const tarefasController = {
         .status(400)
         .json({ erro: "Id usuário inválido ou Usuário não encontrado :/ " });
     }
-
-    const tarefaAndamento = tarefasModel.listarTarefasPorColuna("andamento").filter((t) => t.usuarioId === parseInt(usuarioId)).length;
+    if (coluna === "andamento" && usuarioId) {
+      const tarefaAndamento = tarefasModel
+        .listarTarefasPorColuna("andamento")
+        .filter((t) => t.usuarioId === parseInt(usuarioId)).length;
       if (tarefaAndamento >= 2) {
-        return res.status(400).json({ erro: "Limite de 2 tarefas em andamento por usuário atingido"});
+        return res.status(400).json({
+          erro: "Limite de 2 tarefas em andamento por usuário atingido",
+        });
       }
+    }
     const novaTarefa = tarefasModel.criarTarefa(req.body);
     res.status(201).json(novaTarefa);
   },
 
   atualizarTarefa(req, res) {
-    const tarefaAtualizada = tarefasModel.atualizarTarefa(
-      parseInt(req.params.id),
-      req.body,
-    );
-    if (!tarefaAtualizada) {
+    const id = parseInt(req.params.id);
+    const tarefaExiste = tarefasModel.buscarTarefaPorId(id);
+
+    if (!tarefaExiste) {
       return res
         .status(404)
         .json({ erro: "Tarefa não encontrada para a atualização:/ " });
     }
-    const tarefaAndamento = tarefasModel.listarTarefasPorColuna("andamento").filter((t) => t.usuarioId === parseInt(usuarioId)).length;
+    const novaColuna = req.body.coluna ?? tarefaExiste.coluna;
+    const usuarioId = req.body.usuarioId ?? tarefaExiste.usuarioId;
+
+    if (novaColuna === "andamento" && usuarioId) {
+      const tarefaAndamento = tarefasModel
+        .listarTarefasPorColuna("andamento")
+        .filter(
+          (t) => t.usuarioId === parseInt(usuarioId) && t.id !== id,
+        ).length;
       if (tarefaAndamento >= 2) {
-        return res.status(400).json({ erro: "Limite de 2 tarefas em andamento por usuário atingido"});
+        return res.status(400).json({
+          erro: "Limite de 2 tarefas em andamento por usuário atingido",
+        });
       }
+    }
+    const dadosAtualizar = { ...req.body };
+    delete dadosAtualizar.concluidaEm;
+
+    const estavaConcluida = tarefaExiste.coluna === "concluido";
+    const estaConcluindo = novaColuna === "concluido";
+
+    if (!estavaConcluida && estaConcluindo) {
+      dadosAtualizar.concluidaEm = new Date().toISOString();
+    } else if (estavaConcluida && !estaConcluindo) {
+      dadosAtualizar.concluidaEm = null;
+    }
+
+    const tarefaAtualizada = tarefasModel.atualizarTarefa(id, dadosAtualizar);
     res.json(tarefaAtualizada);
   },
 
@@ -123,11 +160,9 @@ const tarefasController = {
       .listarTarefas()
       .filter((t) => t.usuarioId === parseInt(id));
     if (verificarUsuarioId.length > 0) {
-      return res
-        .status(400)
-        .json({
-          erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
-        });
+      return res.status(400).json({
+        erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
+      });
     }
 
     const tarefaDeletada = tarefasModel.deletarTarefa(parseInt(req.params.id));

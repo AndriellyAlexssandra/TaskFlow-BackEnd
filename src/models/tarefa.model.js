@@ -8,17 +8,21 @@ module.exports = {
     listarTarefas: () => tarefas,
     listarTarefasPorColuna: (coluna) => tarefas.filter((t) => t.coluna === coluna),
     listarTarefasPorPrioridade: (prioridade) => tarefas.filter((t) => t.prioridade === prioridade),
-    buscarTarefaPorId: (id) => tarefas.find((t) => t.id === id),
+
+    listarPorUsuario: (usuarioId) => tarefas.filter((t) => t.usuarioId === usuarioId),
     buscarUsuarioPorId: (usuarioId) => tarefas.find((t) => t.usuarioId === usuarioId),
-    criarTarefa: (texto, prioridade, coluna, usuarioId) => {
+
+    buscarTarefaPorId: (id) => tarefas.find((t) => t.id === id),
+    criarTarefa: (tarefaNova) => {
+        const {texto, prioridade, coluna, usuarioId} = tarefaNova;
         const novaTarefa = { id: proximoId++, texto, prioridade, coluna, usuarioId };
         tarefas.push(novaTarefa);
         return novaTarefa;
     },   
-    atualizarTarefa: (id, texto, prioridade, coluna, usuarioId) => {
+    atualizarTarefa: ( id, tarefaNova )=> {
         const indice = tarefas.findIndex((t) => t.id === id);
         if (indice === -1) return null;
-        tarefas[indice] = { id, texto, prioridade, coluna, usuarioId };
+        tarefas[indice] = { ...tarefas[indice], ...tarefaNova, id };
         return tarefas[indice];
     },
     deletarTarefa: (id) => {
