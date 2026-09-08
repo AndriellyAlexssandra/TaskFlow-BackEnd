@@ -127,6 +127,7 @@ const tarefasController = {
         });
       }
     }
+    
     const novaTarefa = tarefasModel.criarTarefa(req.body);
     res.status(201).json(novaTarefa);
   },
