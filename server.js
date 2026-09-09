@@ -1,14 +1,27 @@
+require("dotenv").config();
+
 const express = require("express");
+
+const app = express();
+const PORTA = process.env.PORTA || 3001;
 
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const tarefasRoutes = require("./src/routes/tarefas.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
+
 const logger = require("./src/middlewares/logger");
 const validarContentType = require("./src/middlewares/validarContentType");
 
-const app = express();
-const PORTA = 3000;
+const cors = require("cors");
 
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "https://www.google.com",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    MaxAge: 86400,
+  }),
+);
 app.use(express.json());
 app.use(validarContentType);
 app.use(logger);
