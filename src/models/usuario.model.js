@@ -7,12 +7,19 @@ let usuarios = [
     senha: "minguado6",
   },
   { id: 3, nome: "cleidiana", email: "cleidiana@opera.com", senha: "bolinho0" },
+  {
+    id: 4,
+    nome: "Alice",
+    email: "alice@email.com",
+    senha: "123456",
+  },
 ];
 let proximoIdUsuario = 4;
 
 module.exports = {
   listarUsuarios: () => usuarios,
   buscarUsuarioPorId: (id) => usuarios.find((u) => u.id === id),
+  buscarPorEmail: (email) => usuarios.find((u) => u.email === email),
   criarUsuario: (nome, email, senha) => {
     const novoUsuario = { id: proximoIdUsuario, nome, email, senha };
     usuarios.push(novoUsuario);

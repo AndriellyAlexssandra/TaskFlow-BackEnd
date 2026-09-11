@@ -94,7 +94,7 @@ const tarefasController = {
 
   criarTarefa(req, res) {
     const { texto, prioridade, coluna, usuarioId } = req.body;
-    if (!texto || !prioridade || !coluna) {
+    /*if (!texto || !prioridade || !coluna) {
       return res
         .status(400)
         .json({ erro: "Texto, prioridade e coluna são obrigatórios :/ " });
@@ -116,7 +116,7 @@ const tarefasController = {
       return res
         .status(400)
         .json({ erro: "Id usuário inválido ou Usuário não encontrado :/ " });
-    }
+    }*/
     if (coluna === "andamento" && usuarioId) {
       const tarefaAndamento = tarefasModel
         .listarTarefasPorColuna("andamento")

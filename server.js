@@ -9,9 +9,11 @@ const PORTA = process.env.PORTA || 3001;
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const tarefasRoutes = require("./src/routes/tarefas.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
+const authRoutes = require('./src/routes/auth.routes');
 
 const logger = require("./src/middlewares/logger");
 const validarContentType = require("./src/middlewares/validarContentType");
+
 
 const cors = require("cors");
 app.use(
@@ -25,6 +27,7 @@ app.use(
 app.use(express.json());
 app.use(validarContentType);
 app.use(logger);
+app.use('/auth', authRoutes);
 
 app.use("/usuarios", usuariosRoutes);
 app.use("/tarefas", tarefasRoutes);

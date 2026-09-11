@@ -38,13 +38,11 @@ function validar(schema) {
           `O campo '${campo}' deve ter no máximo ${regras.maxLength} caracteres`,
         );
       }
-
-      if (erros.length > 0) {
-       
-        return res.status(400).json({ erros });
-         next();
-      }
     }
+    if (erros.length > 0) {
+      return res.status(400).json({ erros });
+    }
+    next();
   };
 }
 module.exports = validar;
