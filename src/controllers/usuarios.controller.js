@@ -1,4 +1,5 @@
 const usuariosModal = require("../models/usuario.model");
+const tarefasModel = require("../models/tarefa.model");
 
 const usuariosController = {
   listarUsuarios(req, res) {
@@ -34,27 +35,44 @@ const usuariosController = {
     return res.status(201).json(novoUsuario);
   },
   atualizarUsuario(req, res) {
+    const id = parseInt(req.params.id);
+    const { nome, email, senha } = req.body;
+
+    if (email) {
+      const emailExiste = usuariosModal
+        .listarUsuarios()
+        .find((u) => u.email === email && u.id !== id);
+      if (emailExiste) {
+        return res.status(400).json({ erro: "Este email já existe!" });
+      }
+    }
     const usuarioAtualizado = usuariosModal.atualizarUsuario(
-      parseInt(req.params.id),
-      req.body,
+      id,
+      nome,
+      email,
+      senha,
     );
     if (!usuarioAtualizado) {
       return res
         .status(404)
         .json({ erro: "Usuário não encontrado para a atualização :/ " });
     }
-    const emailExiste = usuariosModal
-      .listarUsuarios()
-      .find((u) => u.email === req.body.email);
-    if (emailExiste) {
-      return res.status(400).json({ erro: "Este email já existe!" });
-    }
+
 
     res.json(usuarioAtualizado);
   },
   deletarUsuario(req, res) {
     const id = Number(parseInt(req.params.id));
+    const verificarUsuarioId = tarefasModel
+      .listarTarefas()
+      .filter((t) => t.usuarioId === parseInt(id));
+    if (verificarUsuarioId.length > 0) {
+      return res.status(400).json({
+        erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
+      });
+    }
     const usuario = usuariosModal.deletarUsuario(id);
+
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado :/" });
     }

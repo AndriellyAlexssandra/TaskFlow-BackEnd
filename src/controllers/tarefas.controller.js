@@ -174,15 +174,7 @@ const tarefasController = {
 
   deletarTarefa(req, res) {
     const { id } = req.params;
-    const verificarUsuarioId = tarefasModel
-      .listarTarefas()
-      .filter((t) => t.usuarioId === parseInt(id));
-    if (verificarUsuarioId.length > 0) {
-      return res.status(400).json({
-        erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
-      });
-    }
-
+  
     const tarefaDeletada = tarefasModel.deletarTarefa(parseInt(req.params.id));
     if (!tarefaDeletada) {
       return res
