@@ -93,30 +93,8 @@ const tarefasController = {
   },
 
   criarTarefa(req, res) {
-    const { texto, prioridade, coluna, usuarioId } = req.body;
-    /*if (!texto || !prioridade || !coluna) {
-      return res
-        .status(400)
-        .json({ erro: "Texto, prioridade e coluna são obrigatórios :/ " });
-    }
-    const prioridadesValidas = ["baixa", "media", "alta"];
-    if (!prioridadesValidas.includes(prioridade)) {
-      return res.status(400).json({
-        erro: "Prioridade inválida. Escolha entre 'baixa', 'media' ou 'alta'. :/ ",
-      });
-    }
-    const colunasValidas = ["afazer", "andamento", "concluido"];
-    if (!colunasValidas.includes(coluna)) {
-      return res.status(400).json({
-        erro: "Coluna inválida. Escolha entre 'afazer', 'andamento' ou 'concluido'. :/ ",
-      });
-    }
-    const usuariosId = usuariosModal.buscarUsuarioPorId(usuarioId);
-    if (!usuariosId) {
-      return res
-        .status(400)
-        .json({ erro: "Id usuário inválido ou Usuário não encontrado :/ " });
-    }*/
+    const { coluna, usuarioId } = req.body;
+
     if (coluna === "andamento" && usuarioId) {
       const tarefaAndamento = tarefasModel
         .listarTarefasPorColuna("andamento")

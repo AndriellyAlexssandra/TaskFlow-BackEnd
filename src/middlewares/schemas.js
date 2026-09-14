@@ -1,6 +1,6 @@
 const schemas = {
   tarefa: {
-    texto: { obrigatorio: true, tipo: "string" },
+    texto: { obrigatorio: true, tipo: "string", minLength: 3 },
     prioridade: {
       obrigatorio: false,
       tipo: "string",

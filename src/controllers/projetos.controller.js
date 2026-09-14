@@ -7,10 +7,10 @@ const projetosController = {
   },
   postarProjetos(req, res) {
     const { nome, descricao } = req.body;
-    if (!nome || !descricao) {
+    if (!nome) {
       return res
         .status(400)
-        .json({ message: "Nome e descrição são obrigatórios!" });
+        .json({ message: "Nome é obrigatório!" });
     }
     const novoProjeto = projetosModel.criarProjeto(nome, descricao);
     res.status(201).json(novoProjeto);
