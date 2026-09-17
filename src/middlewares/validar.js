@@ -1,5 +1,5 @@
 function validar(schema) {
-  return function (req, res, next) {
+  return function (req, res, next){
     const erros = [];
 
     for (const campo in schema) {
