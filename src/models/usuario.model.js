@@ -13,6 +13,13 @@ let usuarios = [
     email: "alice@email.com",
     senha: "123456",
   },
+   {
+    id: 5,
+    nome: "Admin",
+    email: "admin@email.com",
+    senha: "1234",
+  },
+  
 ];
 let proximoIdUsuario = 4;
 
