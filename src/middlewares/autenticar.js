@@ -9,7 +9,6 @@ function autenticar(req, res, next) {
   if (!token)
     return res
       .status(401)
-
       .json({ erro: "Formato inválido. Use: Bearer <token>" });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);

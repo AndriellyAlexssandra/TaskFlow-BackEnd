@@ -23,7 +23,6 @@ app.use(
     maxAge: 86400,
   }),
 );
-
 app.use(express.json());
 app.use(validarContentType);
 app.use(logger);
