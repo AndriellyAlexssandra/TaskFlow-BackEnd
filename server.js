@@ -36,6 +36,15 @@ app.use("/tarefas", autenticar, tarefasRoutes);
 app.use("/projetos", autenticar, projetosRoutes);
 app.use("/auth", authRoutes);
 
+const pool = require("./src/database/db");
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Erro ao consultar o servidor do banco de dados:', err.message );
+  } else {
+    console.log('Conexão com o banco de dados estabelecida com sucesso.', res.rows[0].now);
+  }
+});
+
 app.use((req, res) => {
   res.status(404).json({ erro: "caiu rota nao encontrada :( " });
 });

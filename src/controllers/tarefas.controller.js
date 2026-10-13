@@ -69,11 +69,11 @@ const tarefasController = {
     res.json(resumo);
   },
 
-  listarTarefas(req, res) {
+  async listarTarefas(req, res) {
     const { usuarioId, coluna } = req.query;
     let tarefas = usuarioId
       ? tarefasModel.listarPorUsuario(parseInt(usuarioId))
-      : tarefasModel.listarTarefas();
+      : await tarefasModel.listarTarefas();
 
     if (coluna) {
       tarefas = tarefas.filter((t) => t.coluna === coluna);
@@ -81,9 +81,9 @@ const tarefasController = {
     res.json(tarefas);
   },
 
-  buscarTarefaPorId(req, res) {
+  async buscarTarefaPorId(req, res) {
     const { id } = req.params;
-    const tarefa = tarefasModel.buscarTarefaPorId(parseInt(id));
+    const tarefa = await tarefasModel.buscarTarefaPorId(parseInt(id));
     if (!tarefa) {
       return res
         .status(404)
@@ -92,7 +92,7 @@ const tarefasController = {
     res.json(tarefa);
   },
 
-  criarTarefa(req, res) {
+  async criarTarefa(req, res) {
     const { coluna, usuarioId } = req.body;
 
     if (coluna === "andamento" && usuarioId) {
@@ -106,13 +106,13 @@ const tarefasController = {
       }
     }
     
-    const novaTarefa = tarefasModel.criarTarefa(req.body);
+    const novaTarefa = await tarefasModel.criarTarefa(req.body);
     res.status(201).json(novaTarefa);
   },
 
-  atualizarTarefa(req, res) {
+  async atualizarTarefa(req, res) {
     const id = parseInt(req.params.id);
-    const tarefaExiste = tarefasModel.buscarTarefaPorId(id);
+    const tarefaExiste = await tarefasModel.buscarTarefaPorId(id);
 
     if (!tarefaExiste) {
       return res
@@ -150,10 +150,10 @@ const tarefasController = {
     res.json(tarefaAtualizada);
   },
 
-  deletarTarefa(req, res) {
+  async deletarTarefa(req, res) {
     const { id } = req.params;
   
-    const tarefaDeletada = tarefasModel.deletarTarefa(parseInt(req.params.id));
+    const tarefaDeletada = await tarefasModel.deletarTarefa(parseInt(id));
     if (!tarefaDeletada) {
       return res
         .status(404)
