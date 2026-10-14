@@ -11,28 +11,41 @@ module.exports = {
         const result = await pool.query('SELECT * FROM tarefas ORDER BY id');
         return result.rows;
     },
-    listarTarefasPorColuna: (coluna) => tarefas.filter((t) => t.coluna === coluna),
-    listarTarefasPorPrioridade: (prioridade) => tarefas.filter((t) => t.prioridade === prioridade),
+    listarTarefasPorColuna: async (coluna) => {
+        const result = await pool.query('SELECT * FROM tarefas WHERE coluna = $1', [coluna]);
+        return result.rows;
+    },
+    listarTarefasPorPrioridade: async (prioridade) => {
+        const result = await pool.query('SELECT * FROM tarefas WHERE prioridade = $1', [prioridade]);
+        return result.rows;
+    },
 
-    listarPorUsuario: (usuarioId) => tarefas.filter((t) => t.usuarioId === usuarioId),
-    buscarUsuarioPorId: (usuarioId) => tarefas.find((t) => t.usuarioId === usuarioId),
+    listarPorUsuario: async (usuarioId) => {
+        const result = await pool.query('SELECT * FROM tarefas WHERE usuarioId = $1', [usuarioId]);
+        return result.rows;
+    },
+    buscarUsuarioPorId: async (usuarioId) => {
+        const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [usuarioId]);
+        return result.rows[0] || null;
+    },
 
     buscarTarefaPorId: async (id) => {
         const result = await pool.query('SELECT * FROM tarefas WHERE id = $1', [id]);
         return result.rows[0] || null;
     },
-    criarTarefa: async ({ texto, prioridade, coluna, usuarioId, projetoId }) => {
+    criarTarefa: async ({ texto, prioridade_id, coluna, usuario_id, projeto_id }) => {
         const result = await pool.query(
-            'INSERT INTO tarefas (texto, prioridade, coluna, usuarioId, projetoId) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [texto, prioridade || 'media', coluna || 'afazer' , usuarioId, projetoId]
+        'INSERT INTO tarefas (texto, prioridade_id, coluna, usuario_id, projeto_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [texto, prioridade_id || 2, coluna || 'afazer', usuario_id, projeto_id]
         );
         return result.rows[0];
     },
+
     atualizarTarefa: async (id, dadosAtualizados) => {
-        const { texto, prioridade, coluna, usuarioId} = dadosAtualizados;
+        const { texto, prioridade_id, coluna, usuario_id} = dadosAtualizados;
         const result = await pool.query(
-            'UPDATE tarefas SET texto = $1, prioridade = $2, coluna = $3, usuarioId = $4 WHERE id = $5 RETURNING *',
-            [texto, prioridade, coluna, usuarioId, id]
+            'UPDATE tarefas SET texto = $1, prioridade_id = $2, coluna = $3, usuario_id = $4 WHERE id = $5 RETURNING *',
+            [texto, prioridade_id || 2, coluna || 'afazer', usuario_id, id]
         );
         return result.rows[0] || null;
     },

@@ -1,4 +1,5 @@
-let usuarios = [
+const pool =  require('../database/db');
+/*let usuarios = [
   { id: 1, nome: "francisca", email: "francisca@gmail.com", senha: "francis1" },
   {
     id: 2,
@@ -21,27 +22,41 @@ let usuarios = [
   },
   
 ];
-let proximoIdUsuario = 4;
+let proximoIdUsuario = 4;*/
 
 module.exports = {
-  listarUsuarios: () => usuarios,
-  buscarUsuarioPorId: (id) => usuarios.find((u) => u.id === id),
-  buscarPorEmail: (email) => usuarios.find((u) => u.email === email),
-  criarUsuario: (nome, email, senha) => {
-    const novoUsuario = { id: proximoIdUsuario, nome, email, senha };
-    usuarios.push(novoUsuario);
+  listarUsuarios: async () => {
+    const result = await pool.query('SELECT * FROM usuarios ORDER BY id');
+    return result.rows;
+  },
+  buscarUsuarioPorId: async (id) => {
+    const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
+    return result.rows[0] || null;
+  },
+  buscarPorEmail: async (email) => {
+    const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+    return result.rows[0] || null;
+  },
+  criarUsuario: async (nome, email, senha_hash) => {
+    const result = await pool.query(
+      'INSERT INTO usuarios (nome, email, senha_hash) VALUES ($1, $2, $3) RETURNING *',
+      [nome, email, senha_hash]
+    );
+    return result.rows[0];
+  },
+    /*usuarios.push(novoUsuario);
     proximoIdUsuario++;
     return novoUsuario;
+  },*/
+  atualizarUsuario: async (id, nome, email, senha_hash) => {
+    const result = await pool.query(
+      'UPDATE usuarios SET nome = $1, email = $2, senha_hash = $3 WHERE id = $4 RETURNING *',
+      [nome, email, senha_hash, id]
+    );
+    return result.rows[0] || null;
   },
-  atualizarUsuario: (id, nome, email, senha) => {
-    const indice = usuarios.findIndex((u) => u.id === id);
-    if (indice === -1) return null;
-    usuarios[indice] = { id, nome, email, senha };
-    return usuarios[indice];
-  },
-  deletarUsuario: (id) => {
-    const indice = usuarios.findIndex((u) => u.id === id);
-    if (indice === -1) return null;
-    return usuarios.splice(indice, 1)[0];
+  deletarUsuario: async (id) => {
+    const result = await pool.query('DELETE FROM usuarios WHERE id = $1 RETURNING *', [id]);
+    return result.rows[0] || null;
   },
 };

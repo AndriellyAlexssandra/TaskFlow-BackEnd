@@ -2,12 +2,12 @@ const usuariosModal = require("../models/usuario.model");
 const tarefasModel = require("../models/tarefa.model");
 
 const usuariosController = {
-  listarUsuarios(req, res) {
-    res.json(usuariosModal.listarUsuarios());
+  async listarUsuarios(req, res) {
+    res.json(await usuariosModal.listarUsuarios());
   },
-  buscarUsuarioPorId(req, res) {
+  async buscarUsuarioPorId(req, res) {
     const { id } = req.params;
-    const usuario = usuariosModal.buscarUsuarioPorId(parseInt(id));
+    const usuario = await usuariosModal.buscarUsuarioPorId(parseInt(id));
     if (!usuario) {
       return res
         .status(404)
@@ -15,42 +15,42 @@ const usuariosController = {
     }
     res.json(usuario);
   },
-  criarUsuario(req, res) {
-    const { nome, email, senha } = req.body;
+  async criarUsuario(req, res) {
+    const { nome, email, senha_hash } = req.body;
 
-    if (!nome || !email || !senha) {
+    if (!nome || !email || !senha_hash) {
       return res
         .status(400)
         .json({ erro: "Nome, email e senha são obrigatorios" });
     }
 
-    const emailExiste = usuariosModal
-      .listarUsuarios()
-      .find((u) => u.email === email);
+    const emailExiste = await usuariosModal.listarUsuarios().then((usuarios) => {
+      return usuarios.find((u) => u.email === email);
+    });
 
     if (emailExiste) {
-      return res.status(400).json({ erro: "Este email já existe!" });
+      return res.status(409).json({ erro: "Este email já existe!" });
     }
-    const novoUsuario = usuariosModal.criarUsuario(nome, email, senha);
+    const novoUsuario = await usuariosModal.criarUsuario(nome, email, senha_hash);
     return res.status(201).json(novoUsuario);
   },
-  atualizarUsuario(req, res) {
+  async atualizarUsuario(req, res) {
     const id = parseInt(req.params.id);
-    const { nome, email, senha } = req.body;
+    const { nome, email, senha_hash } = req.body;
 
     if (email) {
-      const emailExiste = usuariosModal
-        .listarUsuarios()
-        .find((u) => u.email === email && u.id !== id);
+      const emailExiste = await usuariosModal.listarUsuarios().then((usuarios) => {
+        return usuarios.find((u) => u.email === email && u.id !== id);
+      });
       if (emailExiste) {
         return res.status(400).json({ erro: "Este email já existe!" });
       }
     }
-    const usuarioAtualizado = usuariosModal.atualizarUsuario(
+    const usuarioAtualizado = await usuariosModal.atualizarUsuario(
       id,
       nome,
       email,
-      senha,
+      senha_hash,
     );
     if (!usuarioAtualizado) {
       return res
@@ -61,17 +61,17 @@ const usuariosController = {
 
     res.json(usuarioAtualizado);
   },
-  deletarUsuario(req, res) {
+  async deletarUsuario(req, res) {
     const id = Number(parseInt(req.params.id));
-    const verificarUsuarioId = tarefasModel
-      .listarTarefas()
-      .filter((t) => t.usuarioId === parseInt(id));
+    const verificarUsuarioId = await tarefasModel.listarTarefas().then((tarefas) => {
+      return tarefas.filter((t) => t.usuarioId === parseInt(id));
+    });
     if (verificarUsuarioId.length > 0) {
       return res.status(400).json({
         erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
       });
     }
-    const usuario = usuariosModal.deletarUsuario(id);
+    const usuario = await usuariosModal.deletarUsuario(id);
 
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado :/" });

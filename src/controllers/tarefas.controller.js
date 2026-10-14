@@ -111,6 +111,7 @@ const tarefasController = {
   },
 
   async atualizarTarefa(req, res) {
+    const { coluna, prioridade_id, usuario_id } = req.body;
     const id = parseInt(req.params.id);
     const tarefaExiste = await tarefasModel.buscarTarefaPorId(id);
 
@@ -119,14 +120,15 @@ const tarefasController = {
         .status(404)
         .json({ erro: "Tarefa não encontrada para a atualização:/ " });
     }
-    const novaColuna = req.body.coluna ?? tarefaExiste.coluna;
-    const usuarioId = req.body.usuarioId ?? tarefaExiste.usuarioId;
 
-    if (novaColuna === "andamento" && usuarioId) {
+    const novaColuna = req.body.coluna ?? tarefaExiste.coluna;
+    const usuarioId = req.body.usuario_id ?? tarefaExiste.usuario_id;
+
+    if (novaColuna === "andamento" && usuario_id) {
       const tarefaAndamento = tarefasModel
         .listarTarefasPorColuna("andamento")
         .filter(
-          (t) => t.usuarioId === parseInt(usuarioId) && t.id !== id,
+          (t) => t.usuarioId === parseInt(usuario_id) && t.id !== id,
         ).length;
       if (tarefaAndamento >= 2) {
         return res.status(400).json({
@@ -146,7 +148,7 @@ const tarefasController = {
       dadosAtualizar.concluidaEm = null;
     }
 
-    const tarefaAtualizada = tarefasModel.atualizarTarefa(id, dadosAtualizar);
+    const tarefaAtualizada = await tarefasModel.atualizarTarefa(id, dadosAtualizar);
     res.json(tarefaAtualizada);
   },
 

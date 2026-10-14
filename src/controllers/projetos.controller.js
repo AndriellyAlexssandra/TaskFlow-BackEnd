@@ -2,22 +2,22 @@ const projetosModel = require("../models/projetos.model");
 const tarefasModel = require("../models/tarefa.model");
 
 const projetosController = {
-  listarProjetos(req, res) {
-    res.json(projetosModel.listarProjetos());
+  async listarProjetos(req, res) {
+    res.json(await projetosModel.listarProjetos());
   },
-  postarProjetos(req, res) {
+  async postarProjetos(req, res) {
     const { nome, descricao } = req.body;
     if (!nome) {
       return res
         .status(400)
         .json({ message: "Nome é obrigatório!" });
     }
-    const novoProjeto = projetosModel.criarProjeto(nome, descricao);
+    const novoProjeto = await projetosModel.criarProjeto(nome, descricao, req.usuario.id);
     res.status(201).json(novoProjeto);
   },
-  buscarProjetoPorId(req, res) {
+  async buscarProjetoPorId(req, res) {
     const { id } = req.params;
-    const projeto = projetosModel.buscarProjetoPorId(parseInt(id));
+    const projeto = await projetosModel.buscarProjetoPorId(parseInt(id));
     if (!projeto) {
       return res
         .status(404)
@@ -25,10 +25,10 @@ const projetosController = {
     }
     res.json(projeto);
   },
-  atualizarProjetos(req, res) {
+  async atualizarProjetos(req, res) {
     const { id } = req.params;
     const { nome, descricao } = req.body;
-    const projetoAtualizado = projetosModel.atualizarProjeto(
+    const projetoAtualizado = await projetosModel.atualizarProjeto(
       parseInt(id),
       nome,
       descricao,
@@ -40,19 +40,19 @@ const projetosController = {
     }
     res.json(projetoAtualizado);
   },
-  deletarProjetos(req, res) {
+  async deletarProjetos(req, res) {
     const { id } = req.params;
     const projetoId = parseInt(id);
-    const tarefasDoProjeto = tarefasModel
-      .listarTarefas()
-      .filter((t) => t.projetoId === projetoId);
+    const tarefasDoProjeto = await tarefasModel.listarTarefas().then((tarefas) => {
+      return tarefas.filter((t) => t.projeto_id === projetoId);
+    });
     if (tarefasDoProjeto.length > 0) {
       return res
         .status(400)
         .json({ erro: "Projeto possui tarefas associadas!" });
     }
 
-    const projetoDeletado = projetosModel.deletarProjeto(projetoId);
+    const projetoDeletado = await projetosModel.deletarProjeto(projetoId);
     if (!projetoDeletado) {
       return res.status(404).json({
         message: "Esse Projeto não foi encontrado ou ele não existe :(",
@@ -60,18 +60,18 @@ const projetosController = {
     }
     res.json({ message: "Projeto removido com sucesso!" });
   },
-  resumoProjeto(req, res) {
+  async resumoProjeto(req, res) {
     const { id } = req.params;
     const projetoId = parseInt(id);
-    const projeto = projetosModel.buscarProjetoPorId(projetoId);
+    const projeto = await projetosModel.buscarProjetoPorId(projetoId);
     if (!projeto) {
       return res
         .status(404)
         .json({ message: "Projeto não foi encontrado ou ele não existe :(" });
     }
-    const tarefasDoProjeto = tarefasModel.listarTarefas().filter(
-      (t) => t.projetoId === projetoId,
-    );
+    const tarefasDoProjeto = await tarefasModel.listarTarefas().then((tarefas) => {
+      return tarefas.filter((t) => t.projeto_id === projetoId);
+    });
     const porColuna = {
       afazer: tarefasDoProjeto.filter((t) => t.coluna === "afazer").length,
       andamento: tarefasDoProjeto.filter((t) => t.coluna === "andamento")
