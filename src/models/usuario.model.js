@@ -1,28 +1,29 @@
 const pool =  require('../database/db');
-/*let usuarios = [
-  { id: 1, nome: "francisca", email: "francisca@gmail.com", senha: "francis1" },
+
+let usuarios = [
+  { id: 1, nome: "francisca", email: "francisca@gmail.com", senha_hash: "francis1" },
   {
     id: 2,
     nome: "minguado",
     email: "minguado@outlook.com",
-    senha: "minguado6",
+    senha_hash: "minguado6",
   },
-  { id: 3, nome: "cleidiana", email: "cleidiana@opera.com", senha: "bolinho0" },
+  { id: 3, nome: "cleidiana", email: "cleidiana@opera.com", senha_hash: "bolinho0" },
   {
     id: 4,
     nome: "Alice",
     email: "alice@email.com",
-    senha: "123456",
+    senha_hash: "123456",
   },
    {
     id: 5,
     nome: "Admin",
     email: "admin@email.com",
-    senha: "1234",
+    senha_hash: "1234",
   },
   
 ];
-let proximoIdUsuario = 4;*/
+let proximoIdUsuario = 4;
 
 module.exports = {
   listarUsuarios: async () => {

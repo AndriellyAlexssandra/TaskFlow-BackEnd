@@ -1,5 +1,6 @@
 const projetosModel = require("../models/projetos.model");
 const tarefasModel = require("../models/tarefa.model");
+const criarErro = require("../utils/criarErro");
 
 const projetosController = {
   async listarProjetos(req, res) {
@@ -8,9 +9,7 @@ const projetosController = {
   async postarProjetos(req, res) {
     const { nome, descricao } = req.body;
     if (!nome) {
-      return res
-        .status(400)
-        .json({ message: "Nome é obrigatório!" });
+      throw criarErro(400, "Nome é obrigatório!");
     }
     const novoProjeto = await projetosModel.criarProjeto(nome, descricao, req.usuario.id);
     res.status(201).json(novoProjeto);
@@ -19,9 +18,7 @@ const projetosController = {
     const { id } = req.params;
     const projeto = await projetosModel.buscarProjetoPorId(parseInt(id));
     if (!projeto) {
-      return res
-        .status(404)
-        .json({ message: "Projeto não foi encontrado ou ele não existe :(" });
+      throw criarErro(404, "Projeto não foi encontrado ou ele não existe :/ ");
     }
     res.json(projeto);
   },
@@ -34,9 +31,7 @@ const projetosController = {
       descricao,
     );
     if (!projetoAtualizado) {
-      return res.status(404).json({
-        message: "Esse Projeto não foi encontrado ou ele não existe :(",
-      });
+      throw criarErro(404, "Esse Projeto não foi encontrado ou ele não existe :/ ");
     }
     res.json(projetoAtualizado);
   },
@@ -47,16 +42,12 @@ const projetosController = {
       return tarefas.filter((t) => t.projeto_id === projetoId);
     });
     if (tarefasDoProjeto.length > 0) {
-      return res
-        .status(400)
-        .json({ erro: "Projeto possui tarefas associadas!" });
+      throw criarErro(400, "Projeto possui tarefas associadas!");
     }
 
     const projetoDeletado = await projetosModel.deletarProjeto(projetoId);
     if (!projetoDeletado) {
-      return res.status(404).json({
-        message: "Esse Projeto não foi encontrado ou ele não existe :(",
-      });
+      throw criarErro(404, "Esse Projeto não foi encontrado ou ele não existe :/");
     }
     res.json({ message: "Projeto removido com sucesso!" });
   },
@@ -65,9 +56,7 @@ const projetosController = {
     const projetoId = parseInt(id);
     const projeto = await projetosModel.buscarProjetoPorId(projetoId);
     if (!projeto) {
-      return res
-        .status(404)
-        .json({ message: "Projeto não foi encontrado ou ele não existe :(" });
+      throw criarErro(404, "Projeto não encontrado :(");
     }
     const tarefasDoProjeto = await tarefasModel.listarTarefas().then((tarefas) => {
       return tarefas.filter((t) => t.projeto_id === projetoId);

@@ -10,6 +10,7 @@ const autenticar = require("./src/middlewares/autenticar");
 const tarefasRoutes = require("./src/routes/tarefas.routes");
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
+const tratarErros = require("./src/middlewares/erro.middleware");
 
 const validarContentType = require("./src/middlewares/validarContentType");
 const logger = require("./src/middlewares/logger");
@@ -30,7 +31,6 @@ app.use(logger);
 app.get("/", (req, res) => {
   res.json({ api: "TaskFlow", versao: "1.0", status: "online" });
 });
-
 app.use("/usuarios", autenticar, usuariosRoutes);
 app.use("/tarefas", autenticar, tarefasRoutes);
 app.use("/projetos", autenticar, projetosRoutes);
@@ -44,6 +44,8 @@ pool.query('SELECT NOW()', (err, res) => {
     console.log('Conexão com o banco de dados estabelecida com sucesso.', res.rows[0].now);
   }
 });
+
+app.use(tratarErros);
 
 app.use((req, res) => {
   res.status(404).json({ erro: "caiu rota nao encontrada :( " });

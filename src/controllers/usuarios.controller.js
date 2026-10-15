@@ -1,5 +1,6 @@
 const usuariosModal = require("../models/usuario.model");
 const tarefasModel = require("../models/tarefa.model");
+const criarErro = require("../utils/criarErro");
 
 const usuariosController = {
   async listarUsuarios(req, res) {
@@ -9,9 +10,7 @@ const usuariosController = {
     const { id } = req.params;
     const usuario = await usuariosModal.buscarUsuarioPorId(parseInt(id));
     if (!usuario) {
-      return res
-        .status(404)
-        .json({ message: "Usuário não foi encontrado ou ele não existe :(" });
+      throw criarErro(404, "Usuário não encontrado :(");
     }
     res.json(usuario);
   },
@@ -19,9 +18,7 @@ const usuariosController = {
     const { nome, email, senha_hash } = req.body;
 
     if (!nome || !email || !senha_hash) {
-      return res
-        .status(400)
-        .json({ erro: "Nome, email e senha são obrigatorios" });
+      throw criarErro(400, "Nome, email e senha são obrigatorios :/");
     }
 
     const emailExiste = await usuariosModal.listarUsuarios().then((usuarios) => {
@@ -29,7 +26,7 @@ const usuariosController = {
     });
 
     if (emailExiste) {
-      return res.status(409).json({ erro: "Este email já existe!" });
+      throw criarErro(409, "Este email já existe!");
     }
     const novoUsuario = await usuariosModal.criarUsuario(nome, email, senha_hash);
     return res.status(201).json(novoUsuario);
@@ -43,7 +40,7 @@ const usuariosController = {
         return usuarios.find((u) => u.email === email && u.id !== id);
       });
       if (emailExiste) {
-        return res.status(400).json({ erro: "Este email já existe!" });
+        throw criarErro(400, "Este email já existe!");
       }
     }
     const usuarioAtualizado = await usuariosModal.atualizarUsuario(
@@ -53,11 +50,8 @@ const usuariosController = {
       senha_hash,
     );
     if (!usuarioAtualizado) {
-      return res
-        .status(404)
-        .json({ erro: "Usuário não encontrado para a atualização :/ " });
+    throw criarErro(404, "Usuário não encontrado para atualização :/ ");
     }
-
 
     res.json(usuarioAtualizado);
   },
@@ -67,14 +61,12 @@ const usuariosController = {
       return tarefas.filter((t) => t.usuarioId === parseInt(id));
     });
     if (verificarUsuarioId.length > 0) {
-      return res.status(400).json({
-        erro: "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
-      });
+      throw criarErro(400, "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ");
     }
     const usuario = await usuariosModal.deletarUsuario(id);
 
     if (!usuario) {
-      return res.status(404).json({ erro: "Usuário não encontrado :/" });
+      throw criarErro(404, "Usuário não encontrado :/");
     }
 
     res.json({ mensagem: "Usuário removido com sucesso!", id });
