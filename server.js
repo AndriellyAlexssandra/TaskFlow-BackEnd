@@ -10,7 +10,10 @@ const autenticar = require("./src/middlewares/autenticar");
 const tarefasRoutes = require("./src/routes/tarefas.routes");
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
+
+
 const tratarErros = require("./src/middlewares/erro.middleware");
+const criarErro = require("./src/utils/criarErro");
 
 const validarContentType = require("./src/middlewares/validarContentType");
 const logger = require("./src/middlewares/logger");
@@ -48,8 +51,11 @@ pool.query('SELECT NOW()', (err, res) => {
 app.use(tratarErros);
 
 app.use((req, res) => {
-  res.status(404).json({ erro: "caiu rota nao encontrada :( " });
+  const rota = `${req.method} ${req.url}`;
+  throw criarErro(404, `Rota ${rota} não encontrada!`);
 });
+
+app.use(tratarErros);
 
 app.listen(PORTA, () => {
   console.log(`Servidor rodando em http://localhost:${PORTA}`);
