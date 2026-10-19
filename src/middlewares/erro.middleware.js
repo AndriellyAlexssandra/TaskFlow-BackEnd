@@ -5,7 +5,7 @@ function tratarErros(erro, req, res, next) {
   const mensagem = status === 500 ? "Erro interno no servidor" : erro.message;
 
   res.status(status).json({
-    erro: { mensagem, detalhes: erro.detalhes },
+    erro: { mensagem, detalhes: erro.detalhes }
   });
 }
 

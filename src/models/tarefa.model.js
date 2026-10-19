@@ -43,11 +43,17 @@ module.exports = {
 
     atualizarTarefa: async (id, dadosAtualizados) => {
         const { texto, prioridade_id, coluna, usuario_id} = dadosAtualizados;
-        const result = await pool.query(
-            'UPDATE tarefas SET texto = $1, prioridade_id = $2, coluna = $3, usuario_id = $4 WHERE id = $5 RETURNING *',
-            [texto, prioridade_id || 2, coluna || 'afazer', usuario_id, id]
+        
+        const concluidoEm = dadosAtualizados.coluna === 'concluido' ? new Date() : null;
+        const tarefaAtual = await pool.query('SELECT * FROM tarefas WHERE id = $1', [id]);
+        let iniciadoEm = dadosAtualizados.coluna === 'andamento' && tarefaAtual.rows[0]?.iniciado_em === null ?  
+        new Date() : tarefaAtual.rows[0]?.iniciado_em;
+        
+        const resultado = await pool.query(
+            'UPDATE tarefas SET texto = $1, prioridade_id = $2, coluna = $3, usuario_id = $4, concluido_em = $5, iniciado_em = $6 WHERE id = $7 RETURNING *',
+            [dadosAtualizados.texto, dadosAtualizados.prioridade_id || 2, dadosAtualizados.coluna || 'afazer', dadosAtualizados.usuario_id, concluidoEm, iniciadoEm, id]
         );
-        return result.rows[0] || null;
+        return resultado.rows[0] || null;
     },
     deletarTarefa: async (id) => {
         const result = await pool.query('DELETE FROM tarefas WHERE id = $1 RETURNING *', [id]);

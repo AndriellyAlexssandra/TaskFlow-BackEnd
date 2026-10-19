@@ -1,6 +1,6 @@
 const schemas = {
   id: {
-    id: { obrigatorio: true, tipo: "inteiro" },
+    id: { obrigatorio: true, tipo: "inteiro" }
   },
   tarefa: {
     texto: { obrigatorio: true, tipo: "string", minLength: 3 },
@@ -23,7 +23,7 @@ const schemas = {
   },
   projeto: {
     nome: { obrigatorio: true, tipo: "string" },
-    descricao: { obrigatorio: false, tipo: "string", maxLength: 200 },
+    // descricao: { obrigatorio: false, tipo: "string", maxLength: 200 },
     usuario_id: { obrigatorio: true, tipo: "inteiro" },
   },
 };

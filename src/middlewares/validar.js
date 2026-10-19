@@ -9,7 +9,7 @@ function validar(schema, origem) {
       const regras = schema[campo];
       const valor = dados[campo];
       const ausente = valor === undefined || valor === null || valor === "";
-      
+
       if (regras.obrigatorio && ausente) {
         erros.push(`O campo '${campo}' é obrigatório!`);
         continue;
@@ -17,19 +17,20 @@ function validar(schema, origem) {
 
       if (ausente) continue;
 
-      if (regras.tipo === "inteiro") {
-        const numero = typeof valor === "string" ? Number(valor) : valor;
+      if (regras.tipo === 'inteiro') {
+        const numero = typeof valor === 'string' 
+        ? Number(valor) : valor;
 
         if (!Number.isInteger(numero) || numero <= 0) {
-          erros.push(`O campo '${campo}' deve ser um número inteiro positivo!`);
+          erros.push(`O campo '${campo}' deve ser um inteiro positivo`);
+        } 
         } else if (regras.tipo && typeof valor !== regras.tipo) {
           erros.push(`O campo '${campo}' deve ser do tipo ${regras.tipo}`);
-        }
       }
 
-      if (!ausente && regras.tipo && typeof valor !== regras.tipo) {
+      /*if (!ausente && regras.tipo && typeof valor !== regras.tipo) {
         erros.push(`O '${campo}' deve ser do tipo ${regras.tipo}`);
-      }
+      }*/
 
       if (!ausente) {
         if (regras.enum && !regras.enum.includes(valor)) {

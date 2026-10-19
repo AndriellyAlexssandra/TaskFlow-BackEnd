@@ -10,7 +10,7 @@ const autenticar = require("./src/middlewares/autenticar");
 const tarefasRoutes = require("./src/routes/tarefas.routes");
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const projetosRoutes = require("./src/routes/projetos.routes");
-
+const prioridadesRoutes = require("./src/routes/prioridades.routes");
 
 const tratarErros = require("./src/middlewares/erro.middleware");
 const criarErro = require("./src/utils/criarErro");
@@ -38,6 +38,7 @@ app.use("/usuarios", autenticar, usuariosRoutes);
 app.use("/tarefas", autenticar, tarefasRoutes);
 app.use("/projetos", autenticar, projetosRoutes);
 app.use("/auth", authRoutes);
+app.use("/prioridades", autenticar, prioridadesRoutes);
 
 const pool = require("./src/database/db");
 pool.query('SELECT NOW()', (err, res) => {
@@ -47,8 +48,6 @@ pool.query('SELECT NOW()', (err, res) => {
     console.log('Conexão com o banco de dados estabelecida com sucesso.', res.rows[0].now);
   }
 });
-
-app.use(tratarErros);
 
 app.use((req, res) => {
   const rota = `${req.method} ${req.url}`;
