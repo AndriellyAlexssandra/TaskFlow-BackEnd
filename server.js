@@ -21,7 +21,7 @@ const logger = require("./src/middlewares/logger");
 const cors = require("cors");
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     maxAge: 86400,
