@@ -1,82 +1,96 @@
 const tarefasModel = require("../models/tarefa.model");
-
-const usuariosModal = require("../models/usuario.model");
-
 const criarErro = require("../utils/criarErro");
 
-const tarefasController = {
-  estatisticas(req, res) {
-    const { coluna } = req.query;
-    const tarefasFiltradas = coluna
-      ? tarefasModel.listarTarefasPorColuna(coluna)
-      : tarefasModel.listarTarefas();
+const LIMITE_ANDAMENTO_POR_USUARIO = 2;
 
-    const total = tarefasFiltradas.length;
-    if (total === 0) {
+const NOME_PRIORIDADE = { 1: "baixa", 2: "media", 3: "alta" };
+
+async function contarEmAndamento(usuarioId, ignorarId = null) {
+  const emAndamento = await tarefasModel.listarTarefasPorColuna("andamento");
+  return emAndamento.filter(
+    (t) => t.usuario_id === usuarioId && t.id !== ignorarId,
+  ).length;
+}
+
+const tarefasController = {
+  async estatisticas(req, res) {
+    const { coluna } = req.query;
+    const todas = await tarefasModel.listarTarefas();
+    const tarefas = coluna ? todas.filter((t) => t.coluna === coluna) : todas;
+
+    if (tarefas.length === 0) {
       const mensagem = coluna
-        ? `Nenhuma tarefa encontrada na coluna "${coluna} :/ "`
-        : "Você ainda não tem nenhuma tarefa, Que tal criar a primeira? :) ";
+        ? `Nenhuma tarefa encontrada na coluna "${coluna}" :/`
+        : "Você ainda não tem nenhuma tarefa. Que tal criar a primeira? :)";
       return res.json({ resumo: mensagem });
     }
+
     const porColuna = {
-      afazer: tarefasFiltradas.filter((t) => t.coluna === "afazer").length,
-      andamento: tarefasFiltradas.filter((t) => t.coluna === "andamento")
-        .length,
-      concluido: tarefasFiltradas.filter((t) => t.coluna === "concluido")
-        .length,
+      afazer: tarefas.filter((t) => t.coluna === "afazer").length,
+      andamento: tarefas.filter((t) => t.coluna === "andamento").length,
+      concluido: tarefas.filter((t) => t.coluna === "concluido").length,
     };
-    const porPrioridade = {
-      alta: tarefasFiltradas.filter((t) => t.prioridade === "alta").length,
-      media: tarefasFiltradas.filter((t) => t.prioridade === "media").length,
-      baixa: tarefasFiltradas.filter((t) => t.prioridade === "baixa").length,
-    };
-    const todasTarefas = tarefasModel.listarTarefas();
-    const contagemPorUsuario = todasTarefas.reduce((acumulador, tarefa) => {
-      const id = tarefa.usuarioId;
-      acumulador[id] = (acumulador[id] || 0) + 1;
-      return acumulador;
-    }, {});
+
+    const porPrioridade = { alta: 0, media: 0, baixa: 0 };
+    for (const t of tarefas) {
+      const nome = NOME_PRIORIDADE[t.prioridade_id];
+      if (nome) porPrioridade[nome]++;
+    }
+
+    const contagemPorUsuario = {};
+    for (const t of tarefas) {
+      if (!contagemPorUsuario[t.usuario_id]) {
+        contagemPorUsuario[t.usuario_id] = { nome: t.usuario, total: 0 };
+      }
+      contagemPorUsuario[t.usuario_id].total++;
+    }
 
     const rankingUsuarios = Object.entries(contagemPorUsuario)
-      .map(([usuarioId, totalTarefas]) => {
-        const usuario = usuariosModal.buscarUsuarioPorId(parseInt(usuarioId));
-        return {
-          usuarioId: parseInt(usuarioId),
-          nome: usuario ? usuario.nome : "Desconhecido",
-          totalTarefas,
-        };
-      })
+      .map(([usuarioId, dados]) => ({
+        usuarioId: Number(usuarioId),
+        nome: dados.nome || "Desconhecido",
+        totalTarefas: dados.total,
+      }))
       .sort((a, b) => b.totalTarefas - a.totalTarefas);
 
-    res.json({ total: tarefasFiltradas.length, porColuna, porPrioridade, rankingUsuarios });
+    res.json({
+      total: tarefas.length,
+      porColuna,
+      porPrioridade,
+      rankingUsuarios,
+    });
   },
-  estatisticasResumo(req, res) {
-    const total = tarefasModel.listarTarefas().length;
 
-    const afazer = tarefasModel.listarTarefasPorColuna("afazer").length;
-    const andamento = tarefasModel.listarTarefasPorColuna("andamento").length;
-    const concluido = tarefasModel.listarTarefasPorColuna("concluido").length;
+  async estatisticasResumo(req, res) {
+    const todas = await tarefasModel.listarTarefas();
 
-    const prioridades = {
-      baixa: tarefasModel.listarTarefasPorPrioridade("baixa").length,
-      media: tarefasModel.listarTarefasPorPrioridade("media").length,
-      alta: tarefasModel.listarTarefasPorPrioridade("alta").length,
-    };
+    const total = todas.length;
+    const afazer = todas.filter((t) => t.coluna === "afazer").length;
+    const andamento = todas.filter((t) => t.coluna === "andamento").length;
+    const concluido = todas.filter((t) => t.coluna === "concluido").length;
+
+    const prioridades = { baixa: 0, media: 0, alta: 0 };
+    for (const t of todas) {
+      const nome = NOME_PRIORIDADE[t.prioridade_id];
+      if (nome) prioridades[nome]++;
+    }
 
     const prioridadeComum = Object.entries(prioridades).sort(
       (a, b) => b[1] - a[1],
     )[0][0];
-    const resumo = `Você tem ${total} tarefa(s): ${concluido} concluídas, ${andamento} em andamento e ${afazer} a fazer. Prioridade mais comum é: ${prioridadeComum}`;
 
-    res.json(resumo);
+    res.json(
+      `Você tem ${total} tarefa(s): ${concluido} concluídas, ${andamento} em andamento e ${afazer} a fazer. Prioridade mais comum é: ${prioridadeComum}`,
+    );
   },
-    
+
   async listarTarefas(req, res) {
     const { usuarioId, coluna } = req.query;
-    let tarefas = usuarioId
-      ? tarefasModel.listarPorUsuario(parseInt(usuarioId))
-      : await tarefasModel.listarTarefas();
+    let tarefas = await tarefasModel.listarTarefas();
 
+    if (usuarioId) {
+      tarefas = tarefas.filter((t) => t.usuario_id === parseInt(usuarioId));
+    }
     if (coluna) {
       tarefas = tarefas.filter((t) => t.coluna === coluna);
     }
@@ -84,73 +98,70 @@ const tarefasController = {
   },
 
   async buscarTarefaPorId(req, res) {
-    const tarefa = await tarefasModel.buscarTarefaPorId(req.params.id);
+    const tarefa = await tarefasModel.buscarTarefaPorId(parseInt(req.params.id));
     if (!tarefa) {
-      throw criarErro(404, 'Tarefa não encontrada :/ ');
-    } 
+      throw criarErro(404, "Tarefa não encontrada :/");
+    }
     res.json(tarefa);
   },
 
   async criarTarefa(req, res) {
-    const { coluna, usuarioId } = req.body;
+    const { coluna, usuario_id } = req.body;
 
-    if (coluna === "andamento" && usuarioId) {
-      const tarefaAndamento = tarefasModel
-        .listarTarefasPorColuna("andamento")
-        .filter((t) => t.usuarioId === parseInt(usuarioId)).length;
-      if (tarefaAndamento >= 2) {
-        throw criarErro(400, "Limite de 2 tarefas em andamento por usuário atingido");
+    if (coluna === "andamento" && usuario_id) {
+      const total = await contarEmAndamento(Number(usuario_id));
+      if (total >= LIMITE_ANDAMENTO_POR_USUARIO) {
+        throw criarErro(
+          400,
+          "Limite de 2 tarefas em andamento por usuário atingido",
+        );
       }
     }
-    
+
     const novaTarefa = await tarefasModel.criarTarefa(req.body);
     res.status(201).json(novaTarefa);
   },
 
   async atualizarTarefa(req, res) {
-    const { coluna, prioridade_id, usuario_id } = req.body;
     const id = parseInt(req.params.id);
     const tarefaExiste = await tarefasModel.buscarTarefaPorId(id);
 
     if (!tarefaExiste) {
-      throw criarErro(404, "Tarefa não encontrada para a atualização:/ ");
+      throw criarErro(404, "Tarefa não encontrada para a atualização :/");
     }
 
     const novaColuna = req.body.coluna ?? tarefaExiste.coluna;
-    const usuarioId = req.body.usuario_id ?? tarefaExiste.usuario_id;
+    const usuarioId = Number(req.body.usuario_id ?? tarefaExiste.usuario_id);
 
-    if (novaColuna === "andamento" && usuario_id) {
-      const tarefaAndamento = tarefasModel
-        .listarTarefasPorColuna("andamento")
-        .filter(
-          (t) => t.usuarioId === parseInt(usuario_id) && t.id !== id,
-        ).length;
-      if (tarefaAndamento >= 2) {
-        throw criarErro(400, "Limite de 2 tarefas em andamento por usuário atingido");
+    const entrandoEmAndamento =
+      novaColuna === "andamento" && tarefaExiste.coluna !== "andamento";
+    const trocouUsuario = usuarioId !== tarefaExiste.usuario_id;
+
+    if (novaColuna === "andamento" && (entrandoEmAndamento || trocouUsuario)) {
+      const total = await contarEmAndamento(usuarioId, id);
+      if (total >= LIMITE_ANDAMENTO_POR_USUARIO) {
+        throw criarErro(
+          400,
+          "Limite de 2 tarefas em andamento por usuário atingido",
+        );
       }
     }
-    const dadosAtualizar = { ...req.body };
-    delete dadosAtualizar.concluidaEm;
 
-    const estavaConcluida = tarefaExiste.coluna === "concluido";
-    const estaConcluindo = novaColuna === "concluido";
-
-    if (!estavaConcluida && estaConcluindo) {
-      dadosAtualizar.concluidaEm = new Date().toISOString();
-    } else if (estavaConcluida && !estaConcluindo) {
-      dadosAtualizar.concluidaEm = null;
-    }
-
-    const tarefaAtualizada = await tarefasModel.atualizarTarefa(id, dadosAtualizar);
+    const tarefaAtualizada = await tarefasModel.atualizarTarefa(id, req.body);
     res.json(tarefaAtualizada);
   },
 
   async deletarTarefa(req, res) {
-    const tarefaDeletada = await tarefasModel.deletarTarefa(parseInt(req.params.id));
+    const tarefaDeletada = await tarefasModel.deletarTarefa(
+      parseInt(req.params.id),
+    );
     if (!tarefaDeletada) {
-      throw criarErro(404, "Tarefa não encontrada para remover :/ ");
+      throw criarErro(404, "Tarefa não encontrada para remover :/");
     }
-    res.json({mensagem: "Tarefa removida com sucesso!",tarefa: tarefaDeletada,});
+    res.json({
+      mensagem: "Tarefa removida com sucesso!",
+      tarefa: tarefaDeletada,
+    });
   },
 };
 
