@@ -5,8 +5,10 @@ module.exports = {
     const result =
       await pool.query(`SELECT t.*, p.nome as projeto, u.nome as usuario FROM tarefas t
         inner join projetos p on t.projeto_id = p.id 
+        inner join prioridades pr on t.prioridade_id = pr.id
         inner join usuarios u on t.usuario_id = u.id ORDER BY t.id`);
-    /*const result = await pool.query('SELECT * FROM tarefas ORDER BY id');
+        
+        /*const result = await pool.query('SELECT * FROM tarefas ORDER BY id');
 */
         return result.rows;
   },
@@ -26,7 +28,7 @@ module.exports = {
 
   listarPorUsuario: async (usuarioId) => {
     const result = await pool.query(
-      "SELECT * FROM tarefas WHERE usuarioId = $1",
+      "SELECT * FROM tarefas WHERE usuario_id = $1",
       [usuarioId],
     );
     return result.rows;
@@ -66,7 +68,7 @@ module.exports = {
     const finalizadaEm =
       dadosAtualizados.coluna === "concluido" ? new Date() : null;
 
-    let iniciadaEm = tarefaAtual.rows[0].iniciada_em;
+    let iniciadaEm = tarefaAtual.rows[0].iniciado_em;
 
     if (
       tarefaAtual.rows[0].coluna === "em andamento" &&
@@ -102,10 +104,6 @@ module.exports = {
         id,
       ],
     );
-    /*const { texto, prioridade_id, coluna, usuario_id} = dadosAtualizados;
-        const result = await pool.query(
-            'UPDATE tarefas SET texto = $1, prioridade_id = $2, coluna = $3, usuario_id = $4 WHERE id = $5 RETURNING *',
-            [texto, prioridade_id || 2, coluna || 'afazer', usuario_id, id]*/
 
     return result.rows[0] || null;
   },
