@@ -1,10 +1,4 @@
 const pool =  require('../database/db');
-/*let projetos = [
-  { id: 1, nome: "Projeto 1", descricao: "Cadastro de funcionários" },
-  { id: 2, nome: "Projeto 2", descricao: "Cadastro de usuários" },
-  { id: 3, nome: "Projeto 3", descricao: "Cadastro de projetos" },
-];
-let proximoId = 4;*/
 
 module.exports = {
     listarProjetos: async () => {

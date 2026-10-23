@@ -44,7 +44,7 @@ const projetosController = {
     if (tarefasDoProjeto.length > 0) {
       throw criarErro(400, "Projeto possui tarefas associadas!");
     }
-
+    
     const projetoDeletado = await projetosModel.deletarProjeto(projetoId);
     if (!projetoDeletado) {
       throw criarErro(404, "Esse Projeto não foi encontrado ou ele não existe :/");
