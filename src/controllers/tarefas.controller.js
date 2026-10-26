@@ -6,7 +6,7 @@ const criarErro = require("../utils/criarErro");
 
 const tarefasController = {
   estatisticas(req, res) {
-    const estatisticas = tarefaModel.estatisticas();
+    const estatisticas = tarefasModel.estatisticas();
     res.json({estatisticas});
   },
 
@@ -55,7 +55,7 @@ const tarefasController = {
     res.json({ total: tarefasFiltradas.length, porColuna, porPrioridade, rankingUsuarios });
   },*/
   estatisticasResumo(req, res) {
-     const estatisticasResumo = tarefaModel.estatisticasResumo();
+     const estatisticasResumo = tarefasModel.estatisticasResumo();
 
     res.json(estatisticasResumo);
   },
@@ -100,7 +100,7 @@ const tarefasController = {
   },
 
   async criarTarefa(req, res) {
-    res.status(201).json(await tarefaModel.criarTarefa(req.body));
+    res.status(201).json(await tarefasModel.criarTarefa(req.body));
 
    /* if (coluna === "andamento" && usuarioId) {
       const tarefaAndamento = await tarefasModel
