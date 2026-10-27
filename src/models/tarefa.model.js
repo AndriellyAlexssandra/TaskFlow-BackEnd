@@ -4,13 +4,15 @@ const prisma = require("../database/prisma");
 const incluirNomes = {
   projetos: { select: { nome: true } },
   usuarios: { select: { nome: true } },
+  prioridades: { select: { descricao: true, cor: true } },
 };
 function formatarTarefa(tarefa) {
-  const { projetos, usuarios, ...resto } = tarefa;
+  const { projetos, usuarios, prioridades, ...resto } = tarefa;
   return {
     ...resto,
     projeto: projetos?.nome,
     usuario: usuarios?.nome,
+    prioridade: prioridades?.descricao
   };
 }
 module.exports = {
@@ -28,24 +30,6 @@ module.exports = {
         iniciado_em: true,
         ordem: true,
         ...incluirNomes,
-
-        /*prioridades: {
-          select: {
-            descricao: true,
-            cor: true,
-          },
-        },
-        projetos: {
-          select: {
-            nome: true,
-          },
-        },
-
-        usuarios: {
-          select: {
-            nome: true,
-          },
-        },*/
       },
       orderBy: { id: "asc" },
     });
@@ -80,11 +64,23 @@ module.exports = {
   },
 
   buscarTarefaPorId: async (id) => {
-    const tarefa = await prisma.tarefas.findUnique({
-      where: { id },
-      include: incluirNomes,
+    const result = await prisma.tarefas.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        texto: true,
+        coluna: true,
+        usuario_id: true,
+        projeto_id: true,
+        prioridade_id: true,
+        criado_em: true,
+        finalizado_em: true,
+        iniciado_em: true,
+        ordem: true,
+        ...incluirNomes,
+      },
     });
-    return tarefa ? formatarTarefa(tarefa) : null;
+    return result ? formatarTarefa(result) : null;
   },
   criarTarefa: async ({
     texto,
@@ -92,12 +88,20 @@ module.exports = {
     coluna,
     usuario_id,
     projeto_id,
+    ordem
   }) => {
-    const result = await pool.query(
-      "INSERT INTO tarefas (texto, prioridade_id, coluna, usuario_id, projeto_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [texto, prioridade_id || 2, coluna || "afazer", usuario_id, projeto_id],
-    );
-    return result.rows[0];
+    const tarefa = await prisma.tarefas.create({
+      data:{
+        texto: texto,
+        prioridade_id: prioridade_id || 2,
+        coluna: coluna || "afazer",
+        usuario_id: usuario_id,
+        projeto_id: projeto_id,
+        ordem: ordem || 0
+      },
+      include: incluirNomes
+    });
+    return formatarTarefa(tarefa);
   },
 
   atualizarTarefa: async (id, dadosAtualizados) => {
