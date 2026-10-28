@@ -12,7 +12,7 @@ function formatarTarefa(tarefa) {
     ...resto,
     projeto: projetos?.nome,
     usuario: usuarios?.nome,
-    prioridade: prioridades?.descricao
+    prioridade: prioridades?.descricao,
   };
 }
 module.exports = {
@@ -88,27 +88,26 @@ module.exports = {
     coluna,
     usuario_id,
     projeto_id,
-    ordem
+    ordem,
   }) => {
     const tarefa = await prisma.tarefas.create({
-      data:{
+      data: {
         texto: texto,
         prioridade_id: prioridade_id || 2,
         coluna: coluna || "afazer",
         usuario_id: usuario_id,
         projeto_id: projeto_id,
-        ordem: ordem || 0
+        ordem: ordem || 0,
       },
-      include: incluirNomes
+      include: incluirNomes,
     });
     return formatarTarefa(tarefa);
   },
 
   atualizarTarefa: async (id, dadosAtualizados) => {
-    const tarefaAtual = await pool.query(
-      "SELECT * FROM tarefas WHERE id = $1",
-      [id],
-    );
+    const tarefaAtual = await prisma.tarefas.findUnique({
+      where: { id: id },
+    });
 
     if (tarefaAtual.rows.length === 0) {
       return null;
@@ -129,37 +128,34 @@ module.exports = {
     ) {
       iniciadoEm = new Date();
     }
-
-    const result = await pool.query(
-      `UPDATE tarefas SET 
-                texto=$1,
-                coluna=$2,
-                usuario_id=$3,
-                projeto_id=$4,
-                prioridade_id=$5,
-                finalizado_em=$6,
-                iniciado_em=$7
-            WHERE id=$8 
-            RETURNING *`,
-      [
-        dadosAtualizados.texto,
-        dadosAtualizados.coluna,
-        dadosAtualizados.usuario_id,
-        dadosAtualizados.projeto_id,
-        dadosAtualizados.prioridade_id,
-        finalizadoEm,
-        iniciadoEm,
-        id,
-      ],
-    );
-
-    return result.rows[0] || null;
+    const tarefaAtualizada = await prisma.tarefas.update({
+      where: { id: id },
+      data: {
+        texto: dadosAtualizados.texto,
+        coluna: dadosAtualizados.coluna,
+        usuario_id: dadosAtualizados.usuario_id,
+        projeto_id: dadosAtualizados.projeto_id,
+        prioridade_id: dadosAtualizados.prioridade_id,
+        criado_em: criado_em,
+        iniciado_em: iniciadoEm,
+        finalizado_em: finalizadoEm,
+        ordem: dadosAtualizados.ordem,
+      },
+    });
+    return formatarTarefa(tarefaAtualizada);
   },
   deletarTarefa: async (id) => {
-    const result = await pool.query(
-      "DELETE FROM tarefas WHERE id = $1 RETURNING *",
-      [id],
-    );
-    return result.rows[0] || null;
+    try {
+      const tarefa = await prisma.tarefas.delete({
+        where: { id },
+        include: incluirNomes,
+      });
+      return formatarTarefa(tarefa);
+    } catch (erro) {
+      if (erro.code === "P2025") {
+        return null;
+      }
+      throw erro;
+    }
   },
 };

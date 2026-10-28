@@ -27,31 +27,49 @@ module.exports = {
         descricao: true,
         usuario_id: true,
         criado_em: true,
-        comentarios: true, 
-        tarefas: true
+        comentarios: true,
+        tarefas: true,
       },
     });
     return result;
   },
   criarProjeto: async (nome, descricao, usuario_id) => {
-    const result = await pool.query(
-      "INSERT INTO projetos (nome, descricao, usuario_id) VALUES ($1, $2, $3) RETURNING *",
-      [nome, descricao, usuario_id],
-    );
-    return result.rows[0];
+    const result = await prisma.projetos.create({
+      data: {
+        nome: nome,
+        descricao: descricao || null,
+        usuario_id: usuario_id,
+      },
+    });
+    return result;
   },
-  atualizarProjeto: async (id, nome, descricao) => {
-    const result = await pool.query(
-      "UPDATE projetos SET nome = $1, descricao = $2 WHERE id = $3 RETURNING *",
-      [nome, descricao, id],
-    );
-    return result.rows[0] || null;
+  atualizarProjeto: async (id, nome, descricao, usuario_id) => {
+    const projetoAtual = await prisma.projetos.findUnique({
+      where: { id: id },
+    });
+    if (!projetoAtual) return null;
+
+    const projetoAtualizado = await prisma.projetos.update({
+      where: { id: id },
+      data: {
+        nome: nome,
+        descricao: descricao,
+        usuario_id: usuario_id,
+      },
+    });
+    return projetoAtualizado;
   },
   deletarProjeto: async (id) => {
-    const result = await pool.query(
-      "DELETE FROM projetos WHERE id = $1 RETURNING *",
-      [id],
-    );
-    return result.rows[0] || null;
+    try {
+      const deletar = await prisma.tarefas.delete({
+        where: { id },
+      });
+      return deletar;
+    } catch (erro) {
+      if (erro.code === "P2025") {
+        return null;
+      }
+      throw erro;
+    }
   },
 };
