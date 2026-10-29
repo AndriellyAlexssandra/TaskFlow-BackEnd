@@ -18,6 +18,9 @@ const criarErro = require("./src/utils/criarErro");
 const validarContentType = require("./src/middlewares/validarContentType");
 const logger = require("./src/middlewares/logger");
 
+const openapi = require('./src/docs/openapi');
+const swaggerUi = require('swagger-ui-express');
+
 const cors = require("cors");
 app.use(
   cors({
@@ -34,11 +37,13 @@ app.use(logger);
 app.get("/", (req, res) => {
   res.json({ api: "TaskFlow", versao: "1.0", status: "online" });
 });
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
 app.use("/usuarios", autenticar, usuariosRoutes);
 app.use("/tarefas", autenticar, tarefasRoutes);
 app.use("/projetos", autenticar, projetosRoutes);
 app.use("/auth", authRoutes);
 app.use("/prioridades", autenticar, prioridadesRoutes);
+
 
 const pool = require("./src/database/db");
 pool.query('SELECT NOW()', (err, res) => {

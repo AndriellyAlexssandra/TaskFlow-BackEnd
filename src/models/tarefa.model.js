@@ -108,10 +108,12 @@ module.exports = {
     const tarefaAtual = await prisma.tarefas.findUnique({
       where: { id: id },
     });
-
-    if (tarefaAtual.rows.length === 0) {
+    if (!tarefaAtual){
       return null;
     }
+    /*if (tarefaAtual.rows.length === 0) {
+      return null;
+    }*/
     const finalizadoEm =
       dadosAtualizados.coluna === "concluido" ? new Date() : null;
 
