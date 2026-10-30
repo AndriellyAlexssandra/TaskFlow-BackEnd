@@ -108,44 +108,41 @@ module.exports = {
     const tarefaAtual = await prisma.tarefas.findUnique({
       where: { id: id },
     });
-    if (!tarefaAtual){
+    if (!tarefaAtual) {
       return null;
     }
-    /*if (tarefaAtual.rows.length === 0) {
-      return null;
-    }*/
-    const finalizadoEm =
-      dadosAtualizados.coluna === "concluido" ? new Date() : null;
 
-    let iniciadoEm = tarefaAtual.rows[0].iniciado_em;
+    const novaColuna = dadosAtualizados.coluna ?? tarefaAtual.coluna;
 
-    if (
-      tarefaAtual.rows[0].coluna === "em andamento" &&
-      dadosAtualizados.coluna === "afazer"
-    ) {
-      iniciadoEm = null;
-    } else if (
-      tarefaAtual.rows[0].coluna === "afazer" &&
-      dadosAtualizados.coluna === "em andamento"
-    ) {
+    let iniciadoEm = tarefaAtual.iniciado_em;
+    if (tarefaAtual.coluna !== "andamento" && novaColuna === "andamento") {
       iniciadoEm = new Date();
+    } else if (tarefaAtual.coluna === "andamento" && novaColuna === "afazer") {
+      iniciadoEm = null;
     }
+
+    const finalizadoEm =
+      novaColuna === "concluido"
+        ? (tarefaAtual.finalizado_em ?? new Date())
+        : null;
+
     const tarefaAtualizada = await prisma.tarefas.update({
       where: { id: id },
       data: {
         texto: dadosAtualizados.texto,
-        coluna: dadosAtualizados.coluna,
+        coluna: novaColuna,
         usuario_id: dadosAtualizados.usuario_id,
         projeto_id: dadosAtualizados.projeto_id,
         prioridade_id: dadosAtualizados.prioridade_id,
-        criado_em: criado_em,
         iniciado_em: iniciadoEm,
         finalizado_em: finalizadoEm,
         ordem: dadosAtualizados.ordem,
       },
+      include: incluirNomes,
     });
     return formatarTarefa(tarefaAtualizada);
   },
+
   deletarTarefa: async (id) => {
     try {
       const tarefa = await prisma.tarefas.delete({
