@@ -61,7 +61,7 @@ module.exports = {
   },
   deletarProjeto: async (id) => {
     try {
-      const deletar = await prisma.tarefas.delete({
+      const deletar = await prisma.projetos.delete({
         where: { id },
       });
       return deletar;

@@ -5,10 +5,7 @@ const usuariosModal = require("../models/usuario.model");
 const criarErro = require("../utils/criarErro");
 
 const tarefasController = {
-  estatisticas(req, res) {
-    const estatisticas = tarefasModel.estatisticas();
-    res.json({estatisticas});
-  },
+
 
     /*const { coluna } = req.query;
     const tarefasFiltradas = coluna
@@ -54,11 +51,9 @@ const tarefasController = {
 
     res.json({ total: tarefasFiltradas.length, porColuna, porPrioridade, rankingUsuarios });
   },*/
-  estatisticasResumo(req, res) {
-     const estatisticasResumo = tarefasModel.estatisticasResumo();
-
-    res.json(estatisticasResumo);
-  },
+async estatisticasResumo(req, res) {
+  res.json(await tarefasModel.estatisticasResumo());
+},
 
     /*const total = tarefasModel.listarTarefas().length;
 

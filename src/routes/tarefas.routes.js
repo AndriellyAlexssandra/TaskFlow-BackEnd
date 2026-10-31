@@ -8,7 +8,6 @@ const schemas = require("../middlewares/schemas");
 const router = express.Router();
 const idValido = validar(schemas.id, "params");
 
-router.get("/estatisticas", tarefasController.estatisticas);
 
 router.get("/estatisticas/resumo", tarefasController.estatisticasResumo);
 

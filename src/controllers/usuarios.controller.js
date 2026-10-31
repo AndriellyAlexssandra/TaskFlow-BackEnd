@@ -21,14 +21,20 @@ const usuariosController = {
       throw criarErro(400, "Nome, email e senha são obrigatorios :/");
     }
 
-    const emailExiste = await usuariosModal.listarUsuarios().then((usuarios) => {
-      return usuarios.find((u) => u.email === email);
-    });
+    const emailExiste = await usuariosModal
+      .listarUsuarios()
+      .then((usuarios) => {
+        return usuarios.find((u) => u.email === email);
+      });
 
     if (emailExiste) {
       throw criarErro(409, "Este email já existe!");
     }
-    const novoUsuario = await usuariosModal.criarUsuario(nome, email, senha_hash);
+    const novoUsuario = await usuariosModal.criarUsuario(
+      nome,
+      email,
+      senha_hash,
+    );
     return res.status(201).json(novoUsuario);
   },
   async atualizarUsuario(req, res) {
@@ -36,32 +42,38 @@ const usuariosController = {
     const { nome, email, senha_hash } = req.body;
 
     if (email) {
-      const emailExiste = await usuariosModal.listarUsuarios().then((usuarios) => {
-        return usuarios.find((u) => u.email === email && u.id !== id);
-      });
+      const emailExiste = await usuariosModal
+        .listarUsuarios()
+        .then((usuarios) => {
+          return usuarios.find((u) => u.email === email && u.id !== id);
+        });
       if (emailExiste) {
         throw criarErro(400, "Este email já existe!");
       }
     }
-    const usuarioAtualizado = await usuariosModal.atualizarUsuario(
-      id,
+    const usuarioAtualizado = await usuariosModal.atualizarUsuario(id, {
       nome,
       email,
-      senha_hash,
-    );
+      senha_hash: senha_hash,
+    });
     if (!usuarioAtualizado) {
-    throw criarErro(404, "Usuário não encontrado para atualização :/ ");
+      throw criarErro(404, "Usuário não encontrado para atualização :/ ");
     }
 
     res.json(usuarioAtualizado);
   },
   async deletarUsuario(req, res) {
     const id = Number(parseInt(req.params.id));
-    const verificarUsuarioId = await tarefasModel.listarTarefas().then((tarefas) => {
-      return tarefas.filter((t) => t.usuarioId === parseInt(id));
-    });
+    const verificarUsuarioId = await tarefasModel
+      .listarTarefas()
+      .then((tarefas) => {
+        return tarefas.filter((t) => t.usuarioId === parseInt(id));
+      });
     if (verificarUsuarioId.length > 0) {
-      throw criarErro(400, "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ");
+      throw criarErro(
+        400,
+        "Usuário possui tarefas. delete-as primeiro antes de deletar o usuário :/ ",
+      );
     }
     const usuario = await usuariosModal.deletarUsuario(id);
 

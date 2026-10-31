@@ -13,8 +13,8 @@ const schemas = {
       tipo: "string",
       enum: ["afazer", "andamento", "concluido"],
     },
-    usuario_id: { obrigatorio: false, tipo: "inteiro" },
-    projeto_id: { obrigatorio: false, tipo: "inteiro" },
+    usuario_id: { obrigatorio: true, tipo: "inteiro" },
+    projeto_id: { obrigatorio: true, tipo: "inteiro" },
   },
   usuario: {
     nome: { obrigatorio: true, tipo: "string", minLength: 3 },

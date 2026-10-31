@@ -13,9 +13,20 @@ function formatarTarefa(tarefa) {
     projeto: projetos?.nome,
     usuario: usuarios?.nome,
     prioridade: prioridades?.descricao,
+    prioridade_cor: prioridades?.cor,
   };
 }
 module.exports = {
+  estatisticasResumo: async () => {
+  const tarefas = await prisma.tarefas.findMany({
+    select: { coluna: true },
+  });
+  const porColuna = { afazer: 0, andamento: 0, concluido: 0 };
+  for (const t of tarefas) {
+    porColuna[t.coluna] = (porColuna[t.coluna] || 0) + 1;
+  }
+  return { total: tarefas.length, porColuna };
+},
   listarTarefas: async () => {
     const lista = await prisma.tarefas.findMany({
       select: {
@@ -35,6 +46,7 @@ module.exports = {
     });
     return lista.map(formatarTarefa);
   },
+  
   listarTarefasPorColuna: async (coluna) => {
     const result = await pool.query("SELECT * FROM tarefas WHERE coluna = $1", [
       coluna,
