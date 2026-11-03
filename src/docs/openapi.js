@@ -13,7 +13,7 @@ module.exports = {
     description: "API do TaskFlow ─ SENAI CTGAS-ER ─  Programador Full Stack ˙𐃷˙ ",
   },
 
-  servers: [{ url: "http://localhost:3001", description: "Local" }],
+  servers: [{ url: '/', description: "Este servidor" }],
   security: [{ bearerAuth: [] }],
   paths: { ...tarefas.paths, ...projetos.paths, ...usuarios.paths, ...prioridades.paths },
 
