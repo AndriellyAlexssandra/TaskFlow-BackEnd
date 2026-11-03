@@ -64,3 +64,5 @@ app.use(tratarErros);
 app.listen(PORTA, () => {
   console.log(`Servidor rodando em http://localhost:${PORTA}`);
 });
+
+module.exports = app;
