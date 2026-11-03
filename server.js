@@ -18,18 +18,31 @@ const criarErro = require("./src/utils/criarErro");
 const validarContentType = require("./src/middlewares/validarContentType");
 const logger = require("./src/middlewares/logger");
 
-const openapi = require('./src/docs/openapi');
-const swaggerUi = require('swagger-ui-express');
+const openapi = require("./src/docs/openapi");
+const swaggerUi = require("swagger-ui-express");
 
 const cors = require("cors");
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     maxAge: 86400,
   }),
 );
+const SWAGGER_CDN = "https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14";
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openapi, {
+    customCssUrl: `${SWAGGER_CDN}/swagger-ui.css`,
+    customJs: [
+      `${SWAGGER_CDN}/swagger-ui-bundle.js`,
+      `${SWAGGER_CDN}/swagger-ui-standalone-preset.js`,
+    ],
+  }),
+);
+
 app.use(express.json());
 app.use(validarContentType);
 app.use(logger);
@@ -37,20 +50,24 @@ app.use(logger);
 app.get("/", (req, res) => {
   res.json({ api: "TaskFlow", versao: "1.0", status: "online" });
 });
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
 app.use("/usuarios", autenticar, usuariosRoutes);
 app.use("/tarefas", autenticar, tarefasRoutes);
 app.use("/projetos", autenticar, projetosRoutes);
 app.use("/auth", authRoutes);
 app.use("/prioridades", autenticar, prioridadesRoutes);
 
-
 const pool = require("./src/database/db");
-pool.query('SELECT NOW()', (err, res) => {
+pool.query("SELECT NOW()", (err, res) => {
   if (err) {
-    console.error('Erro ao consultar o servidor do banco de dados:', err.message );
+    console.error(
+      "Erro ao consultar o servidor do banco de dados:",
+      err.message,
+    );
   } else {
-    console.log('Conexão com o banco de dados estabelecida com sucesso.', res.rows[0].now);
+    console.log(
+      "Conexão com o banco de dados estabelecida com sucesso.",
+      res.rows[0].now,
+    );
   }
 });
 
