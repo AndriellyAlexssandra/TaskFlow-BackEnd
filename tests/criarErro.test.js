@@ -1,0 +1,11 @@
+const criarErro = require("../src/criarErro");
+
+describe("criarErro", () => {
+  test("Devolve um Erro com o status e a mensagem ", () => {
+    const erro = criarErro(404, "Tarefa não encontrada");
+
+    expect(erro).toBeInstanceOf(Error);
+    expect(erro.status).toBe(404);
+    expect(erro.message).toBe("Tarefa não encontrada");
+  });
+});
