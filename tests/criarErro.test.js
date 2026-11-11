@@ -1,4 +1,4 @@
-const criarErro = require("../src/criarErro");
+const criarErro = require("../src/utils/criarErro");
 
 describe("criarErro", () => {
   test("Devolve um Erro com o status e a mensagem ", () => {

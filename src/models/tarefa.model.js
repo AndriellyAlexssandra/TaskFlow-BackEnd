@@ -1,21 +1,12 @@
 const pool = require("../database/db");
 const prisma = require("../database/prisma");
+const formatarTarefa = require("../utils/formatarTarefa");
 
 const incluirNomes = {
   projetos: { select: { nome: true } },
   usuarios: { select: { nome: true } },
   prioridades: { select: { descricao: true, cor: true } },
 };
-function formatarTarefa(tarefa) {
-  const { projetos, usuarios, prioridades, ...resto } = tarefa;
-  return {
-    ...resto,
-    projeto: projetos?.nome,
-    usuario: usuarios?.nome,
-    prioridade: prioridades?.descricao,
-    prioridade_cor: prioridades?.cor,
-  };
-}
 module.exports = {
   estatisticasResumo: async () => {
   const tarefas = await prisma.tarefas.findMany({
