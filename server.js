@@ -1,6 +1,5 @@
 const app = require("./app");
 const pool = require("./src/database/db");
-
 const PORTA = process.env.PORTA || 3001;
 
 pool.query("SELECT NOW()", (err, res) => {
@@ -16,8 +15,6 @@ pool.query("SELECT NOW()", (err, res) => {
     );
   }
 });
-
 app.listen(PORTA, () => {
   console.log(`Servidor rodando em http://localhost:${PORTA}`);
 });
-
