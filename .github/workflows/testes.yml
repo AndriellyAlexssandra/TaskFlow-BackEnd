@@ -28,5 +28,5 @@ steps:
   - name: Instalar as dependências
     run: npm ci
 
-    - name: Rodar os testes
+  - name: Rodar os testes
     run: npm test
