@@ -22,8 +22,8 @@ steps:
   - name: Instalar o Node
     uses: actions/setup-node@v6
     with:
-    node-version: 22
-    cache: npm
+      node-version: 22
+      cache: npm
 
   - name: Instalar as dependências
     run: npm ci
